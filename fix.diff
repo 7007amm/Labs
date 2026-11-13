@@ -1,0 +1,33 @@
+--- a/lab2_app.py
++++ b/lab2_app.py
+@@ -1,5 +1,6 @@
+ import sqlite3
+ from flask import Flask, request
++from markupsafe import escape
+ 
+ app = Flask(__name__)
+ 
+@@ -22,15 +23,14 @@
+         conn = sqlite3.connect("meme.db")
+         cursor = conn.cursor()
+ 
+-        # УЯЗВИМОСТЬ 1: SQL Injection
+-        query = f"SELECT * FROM secrets WHERE password = '{password}'"
+-        cursor.execute(query)
++        # ИСПРАВЛЕНИЕ 1: Параметризованный запрос защищает от SQL-инъекций
++        query = "SELECT * FROM secrets WHERE password = ?"
++        cursor.execute(query, (password,))
+         result = cursor.fetchone()
+         conn.close()
+ 
+         if result:
+-            # УЯЗВИМОСТЬ 2: Reflected XSS
++            # ИСПРАВЛЕНИЕ 2: Экранирование пользовательского ввода
++            safe_username = escape(username)
+             return f"""
+             <div style="text-align: center; font-family: sans-serif; margin-top: 50px;">
+-                <h2>Привет, {username}! Доступ открыт.</h2>
++                <h2>Привет, {safe_username}! Доступ открыт.</h2>
+                 <h1 style="font-size: 200px; margin: 0; color: #ff4500;">67</h1>
+             </div>
+             """
